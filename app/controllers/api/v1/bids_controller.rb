@@ -2,8 +2,13 @@ module Api
   module V1
     class BidsController < ::ApplicationController
       IDEMPOTENCY_HEADER = 'HTTP_IDEMPOTENCY_KEY'.freeze
+      REDIS_NAMESPACE = 'idempotency_keys'.freeze
+
+      class MissingIdempotencyKey < StandardError; end
 
       def create
+        raise MissingIdempotencyKey if idempotency_key.blank?
+
         if IdempotentAction.exists?(idempotency_key: idempotency_key)
           success_response
         else

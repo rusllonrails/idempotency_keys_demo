@@ -96,6 +96,19 @@ RSpec.describe ::Api::V1::BidsController do
 
       it_behaves_like 'creates new record (if needed) and returns sum', 0, 7
     end
+
+    context 'when Idempotency-Key is missing in headers' do
+      let(:do_request) do
+        request.headers['Idempotency-Key'] = nil
+        post(:create, params: {amount: amount}, format: :json)
+      end
+
+      specify do
+        expect {
+          do_request
+        }.to raise_error(::Api::V1::BidsController::MissingIdempotencyKey)
+      end
+    end
   end
 
   private
