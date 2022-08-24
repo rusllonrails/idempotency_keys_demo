@@ -12,6 +12,7 @@ gem "bootsnap", require: false
 
 group :development, :test do
   gem 'rspec-rails', '~> 6.0.0.rc1'
+  gem 'oj'
 end
 
 group :development, :test do

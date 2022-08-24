@@ -112,6 +112,7 @@ GEM
     nio4r (2.5.8)
     nokogiri (1.13.8-x86_64-linux)
       racc (~> 1.4)
+    oj (3.13.21)
     puma (5.6.5)
       nio4r (~> 2.0)
     racc (1.6.0)
@@ -182,6 +183,7 @@ DEPENDENCIES
   bootsnap
   debug
   mysql2 (~> 0.5)
+  oj
   puma (~> 5.0)
   rails (~> 7.0.3, >= 7.0.3.1)
   redis (~> 4.0)
