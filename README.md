@@ -1,24 +1,29 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Simple Rails API application, which demonstrates using of Idempotency-Keys.
 
-Things you may want to cover:
+App has one endpoint: http://localhost:3000/api/v1/bids
+Endpoint is expecting `Idempotency-Key` header and `amount` params (as Integer).
 
-* Ruby version
+# How to run app
 
-* System dependencies
+```
+bundle
+rake db:create db:migrate
+rails s
 
-* Configuration
+```
 
-* Database creation
+# How to make a call to API via CURL
 
-* Database initialization
+```
+curl -X POST -H "Content-Type: application/json" -H "Idempotency-Key: AGJ6FJMkGQIpHUTX" -d '{"amount": 10}' http://localhost:3000/api/v1/bids
 
-* How to run the test suite
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+# How to run tests
 
-* Deployment instructions
 
-* ...
+```
+RAILS_ENV=test bundle exec rspec spec
+```
