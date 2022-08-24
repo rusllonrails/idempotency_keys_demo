@@ -45,16 +45,12 @@ module Api
         @idempotency_key ||= request.headers[IDEMPOTENCY_HEADER]
       end
 
-      def redis
-        @redis ||= ::Redis.current
-      end
-
-      def redis_key
-        @redis_key ||= "#{REDIS_NAMESPACE}:#{idempotency_key}"
+      def equivalent_request?
+        redis.get(redis_key)
       end
 
       def track_idempotency_key!
-        redis.hmset(redis_key, 'tracked')
+        redis.set(redis_key, 'tracked')
         redis.expire(redis_key, REDIS_EXPIRE_TIME)
       end
 
@@ -62,8 +58,12 @@ module Api
         redis.del(redis_key)
       end
 
-      def equivalent_request?
-        redis.hexists(redis_key, 'tracked')
+      def redis_key
+        @redis_key ||= "#{REDIS_NAMESPACE}:#{idempotency_key}"
+      end
+
+      def redis
+        @redis ||= ::Redis.current
       end
     end
   end
