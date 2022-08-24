@@ -12,15 +12,16 @@
 
 ActiveRecord::Schema[7.0].define(version: 2022_08_24_121552) do
   create_table "bids", charset: "utf8mb4", force: :cascade do |t|
-    t.integer "amount"
+    t.integer "amount", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "idempotent_actions", charset: "utf8mb4", force: :cascade do |t|
-    t.string "idempotency_key"
+    t.string "idempotency_key", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["idempotency_key"], name: "index_idempotent_actions_on_idempotency_key", unique: true
   end
 
 end
