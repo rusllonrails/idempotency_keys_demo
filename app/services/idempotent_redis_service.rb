@@ -1,10 +1,9 @@
-module IdempotentRequest
-  IDEMPOTENCY_HEADER = 'HTTP_IDEMPOTENCY_KEY'.freeze
+class IdempotentRedisService
   REDIS_NAMESPACE = 'idempotency_keys'.freeze
   REDIS_EXPIRE_TIME = 1.day.to_i
 
-  def idempotency_key
-    @idempotency_key ||= request.headers[IDEMPOTENCY_HEADER]
+  def initialize(idempotency_key)
+    @idempotency_key = idempotency_key
   end
 
   def equivalent_request?
@@ -19,6 +18,10 @@ module IdempotentRequest
   def clean_up_idempotency_key!
     redis.del(redis_key)
   end
+
+  private
+
+  attr_reader :idempotency_key
 
   def redis_key
     @redis_key ||= "#{REDIS_NAMESPACE}:#{idempotency_key}"
