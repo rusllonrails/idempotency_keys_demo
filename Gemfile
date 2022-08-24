@@ -15,6 +15,6 @@ group :development, :test do
   gem 'oj'
 end
 
-group :development, :test do
-  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+group :test do
+  gem 'factory_bot_rails'
 end
