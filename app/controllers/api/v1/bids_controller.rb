@@ -15,7 +15,7 @@ module Api
       private
 
       def persist_bid!
-        Bid.transaction do
+        ActiveRecord::Base.transaction do
           Bid.create!(amount: params[:amount])
           IdempotentAction.create!(idempotency_key: idempotency_key)
         end
