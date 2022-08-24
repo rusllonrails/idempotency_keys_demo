@@ -3,11 +3,13 @@ module Api
     class BidsController < ::ApplicationController
       IDEMPOTENCY_HEADER = 'HTTP_IDEMPOTENCY_KEY'.freeze
       REDIS_NAMESPACE = 'idempotency_keys'.freeze
-
-      class MissingIdempotencyKey < StandardError; end
+      MISSING_IDEMPOTENCY_KEY = 'Missing Idempotency Key'.freeze
 
       def create
-        raise MissingIdempotencyKey if idempotency_key.blank?
+        if idempotency_key.blank?
+          render json: {error: MISSING_IDEMPOTENCY_KEY}, status: :bad_request
+          return
+        end
 
         if IdempotentAction.exists?(idempotency_key: idempotency_key)
           success_response
@@ -34,6 +36,10 @@ module Api
 
       def idempotency_key
         @idempotency_key ||= request.headers[IDEMPOTENCY_HEADER]
+      end
+
+      def redis
+        @redis ||= ::Redis.current
       end
     end
   end

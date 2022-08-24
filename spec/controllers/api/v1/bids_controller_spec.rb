@@ -104,9 +104,10 @@ RSpec.describe ::Api::V1::BidsController do
       end
 
       specify do
-        expect {
-          do_request
-        }.to raise_error(::Api::V1::BidsController::MissingIdempotencyKey)
+        do_request
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json_response).to eq(error: 'Missing Idempotency Key')
       end
     end
   end
