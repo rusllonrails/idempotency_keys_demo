@@ -43,7 +43,7 @@ RSpec.describe ::Api::V1::BidsController do
         specify do
           expect {
             do_request
-          }.to raise_error(ActiveRecord::RecordInvalid)
+          }.to raise_error(ActiveRecord::RecordInvalid, /Amount is not a number/)
         end
       end
 
@@ -57,6 +57,35 @@ RSpec.describe ::Api::V1::BidsController do
         let(:amount) { 'foobar' }
 
         it_behaves_like 'raises RecordInvalid error when amount has wrong value'
+      end
+
+      context 'when attempt to save duplicated idempotency_key' do
+        before do
+          create(:idempotent_action, idempotency_key: idempotency_key)
+
+          # Imitation that initial check in controller level passed
+          allow(IdempotentAction).to receive(:exists?).with(idempotency_key: idempotency_key)
+                                                      .and_return(false)
+        end
+
+        specify do
+          expect {
+            do_request
+          }.to raise_error(ActiveRecord::RecordInvalid, /Idempotency key has already been taken/)
+        end
+
+        context 'when even passed validations' do
+          before do
+            # Imitation new instance of IdempotentAction passed validation
+            allow_any_instance_of(IdempotentAction).to receive(:valid?).and_return(true)
+          end
+
+          specify do
+            expect {
+              do_request
+            }.to raise_error(ActiveRecord::RecordNotUnique, /Duplicate entry '#{idempotency_key}' for key 'index_idempotent_actions_on_idempotency_key'/)
+          end
+        end
       end
     end
 
@@ -75,23 +104,3 @@ RSpec.describe ::Api::V1::BidsController do
     expect(response.status).to eq(200)
   end
 end
-
-
-
-        # specify do
-        #   expect {
-        #     do_request
-        #   }.to raise_error(ActiveRecord::RecordInvalid)
-
-          # puts ""
-          # puts "-" * 50
-          # puts ""
-          # puts "response.status: #{response.status}"
-          # puts "json_response: #{json_response}"
-          # puts ""
-          # puts "-" * 50
-          # puts ""
-
-          # expect_status_to_be_ok
-          # expect(json_response).to eq(sum_of_bids: 0)
-        # end
