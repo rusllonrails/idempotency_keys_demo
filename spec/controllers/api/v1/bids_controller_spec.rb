@@ -13,12 +13,12 @@ RSpec.describe ::Api::V1::BidsController do
       post(:create, params: {amount: amount}, format: :json)
     end
 
-    shared_examples 'creates new record (if needed) and returns sum' do |sum_of_bids, sum_of_bids_when_existing_records|
-      specify do
+    context 'when idempotency key does not exist in DB' do
+      it 'creates new record and returns sum of bids' do
         do_request
 
         expect_status_to_be_ok
-        expect(json_response).to eq(sum_of_bids: sum_of_bids)
+        expect(json_response).to eq(sum_of_bids: 10)
       end
 
       context 'when there are already some bids in DB' do
@@ -27,17 +27,13 @@ RSpec.describe ::Api::V1::BidsController do
           create(:bid, amount: 2)
         end
 
-        specify do
+        it 'creates new record and returns sum of bids (including previously created records)' do
           do_request
 
           expect_status_to_be_ok
-          expect(json_response).to eq(sum_of_bids: sum_of_bids_when_existing_records)
+          expect(json_response).to eq(sum_of_bids: 17)
         end
       end
-    end
-
-    context 'when idempotency key does not exist in DB' do
-      it_behaves_like 'creates new record (if needed) and returns sum', 10, 17
 
       shared_examples 'raises RecordInvalid error when amount has wrong value' do
         specify do
@@ -83,7 +79,8 @@ RSpec.describe ::Api::V1::BidsController do
           specify do
             expect {
               do_request
-            }.to raise_error(ActiveRecord::RecordNotUnique, /Duplicate entry '#{idempotency_key}' for key 'index_idempotent_actions_on_idempotency_key'/)
+            }.to raise_error(ActiveRecord::RecordNotUnique,
+                            /Duplicate entry '#{idempotency_key}' for key 'index_idempotent_actions_on_idempotency_key'/)
           end
         end
       end
@@ -94,7 +91,26 @@ RSpec.describe ::Api::V1::BidsController do
         create(:idempotent_action, idempotency_key: idempotency_key)
       end
 
-      it_behaves_like 'creates new record (if needed) and returns sum', 0, 7
+      it 'does not create new record and returns sum of bids' do
+        do_request
+
+        expect_status_to_be_ok
+        expect(json_response).to eq(sum_of_bids: 0)
+      end
+
+      context 'when there are already some bids in DB' do
+        before do
+          create(:bid, amount: 5)
+          create(:bid, amount: 2)
+        end
+
+        it 'does not create new record and returns sum of bids (including previously created records)' do
+          do_request
+
+          expect_status_to_be_ok
+          expect(json_response).to eq(sum_of_bids: 7)
+        end
+      end
     end
 
     context 'when Idempotency-Key is missing in headers' do
