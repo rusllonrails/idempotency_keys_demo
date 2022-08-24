@@ -163,6 +163,8 @@ GEM
       rspec-mocks (~> 3.11)
       rspec-support (~> 3.11)
     rspec-support (3.11.0)
+    shoulda-matchers (5.1.0)
+      activesupport (>= 5.2.0)
     strscan (3.0.4)
     thor (1.2.1)
     timeout (0.3.0)
@@ -185,6 +187,7 @@ DEPENDENCIES
   rails (~> 7.0.3, >= 7.0.3.1)
   redis (~> 4.0)
   rspec-rails (~> 6.0.0.rc1)
+  shoulda-matchers (~> 5.0)
 
 RUBY VERSION
    ruby 2.7.5p203

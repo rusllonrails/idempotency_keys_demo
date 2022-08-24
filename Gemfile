@@ -10,11 +10,9 @@ gem "redis", "~> 4.0"
 
 gem "bootsnap", require: false
 
-group :development, :test do
+group :test do
   gem 'rspec-rails', '~> 6.0.0.rc1'
   gem 'oj'
-end
-
-group :test do
   gem 'factory_bot_rails'
+  gem 'shoulda-matchers', '~> 5.0'
 end
