@@ -7,7 +7,7 @@ class IdempotentRedisService
   end
 
   def equivalent_request?
-    $redis.get(redis_key)
+    $redis.get(redis_key).present?
   end
 
   def track_idempotency_key!

@@ -1,33 +1,48 @@
-class IdempotentRedisService
-  REDIS_NAMESPACE = 'idempotency_keys'.freeze
-  REDIS_EXPIRE_TIME = 1.day.to_i
+require 'rails_helper'
 
-  def initialize(idempotency_key)
-    @idempotency_key = idempotency_key
+RSpec.describe IdempotentRedisService do
+  subject(:service) { described_class.new(idempotency_key) }
+
+  let(:idempotency_key) { 'testkey' }
+  let(:redis_key) { "idempotency_keys:#{idempotency_key}" }
+
+  before do
+    $redis.set(redis_key, 'tracked')
   end
 
-  def equivalent_request?
-    redis.get(redis_key)
+  describe '#equivalent_request?' do
+    context 'when idempotency key was tracked in Redis' do
+      specify do
+        expect(service.equivalent_request?).to be_truthy
+      end
+    end
+
+    context 'when idempotency key was not tracked in Redis yet' do
+      before { service.clean_up_idempotency_key! }
+
+      specify do
+        expect(service.equivalent_request?).to be_falsey
+      end
+    end
   end
 
-  def track_idempotency_key!
-    redis.set(redis_key, 'tracked')
-    redis.expire(redis_key, REDIS_EXPIRE_TIME)
+  describe '#track_idempotency_key!' do
+    before { service.clean_up_idempotency_key! }
+
+    specify do
+      expect($redis).to receive(:expire).with(redis_key, described_class::REDIS_EXPIRE_TIME)
+
+      expect {
+        service.track_idempotency_key!
+      }.to change(service, :equivalent_request?).from(false).to(true)
+    end
   end
 
-  def clean_up_idempotency_key!
-    redis.del(redis_key)
-  end
-
-  private
-
-  attr_reader :idempotency_key
-
-  def redis_key
-    @redis_key ||= "#{REDIS_NAMESPACE}:#{idempotency_key}"
-  end
-
-  def redis
-    @redis ||= ::Redis.current
+  describe '#clean_up_idempotency_key!' do
+    specify do
+      expect {
+        service.clean_up_idempotency_key!
+      }.to change(service, :equivalent_request?).from(true).to(false)
+    end
   end
 end
